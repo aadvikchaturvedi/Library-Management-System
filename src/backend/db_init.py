@@ -124,5 +124,10 @@ def initialize_database():
     return False
 
 
+def init_db():
+    """Alias for initialize_database() for convenience"""
+    return initialize_database()
+
+
 if __name__ == "__main__":
     initialize_database()
