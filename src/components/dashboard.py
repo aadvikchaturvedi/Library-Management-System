@@ -14,6 +14,18 @@ def show_dashboard():
     try:
         db = st.session_state.db
         
+        # Check if database is connected
+        if not db.cursor or not db.conn:
+            st.warning("⚠️ Database not connected. Please configure your environment variables:")
+            st.code("""
+DB_HOST=your-host
+DB_USER=your-user
+DB_PASSWORD=your-password
+DB_NAME=your-database
+            """)
+            st.info("📝 On Streamlit Cloud, add these to Secrets (Settings → Secrets in app dashboard)")
+            return
+        
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:

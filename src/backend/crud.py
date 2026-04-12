@@ -12,18 +12,22 @@ from src.models.transaction import Transaction
 
 class LibraryDB:
     def __init__(self):
+        self.conn = None
+        self.cursor = None
         try:
             self.conn = mysql.connector.connect(
-                host=os.getenv("DB_HOST"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                database=os.getenv("DB_NAME")
+                host=os.getenv("DB_HOST") or "localhost",
+                user=os.getenv("DB_USER") or "root",
+                password=os.getenv("DB_PASSWORD") or "",
+                database=os.getenv("DB_NAME") or "library_management"
             )
             self.cursor = self.conn.cursor(dictionary=True)
             print("Database Connected Successfully")
 
         except Error as e:
             print("Database Connection Error:", e)
+            self.cursor = None
+            self.conn = None
 
     # =====================================================
     # BOOK CRUD
@@ -44,25 +48,35 @@ class LibraryDB:
         self.conn.commit()
 
     def get_books(self) -> List[Book]:
-        self.cursor.execute("SELECT * FROM books")
-        rows = self.cursor.fetchall()
+        if not self.cursor:
+            return []
+        try:
+            self.cursor.execute("SELECT * FROM books")
+            rows = self.cursor.fetchall()
 
-        return [
-            Book(
-                id=int(row["id"]) if row["id"] else None,  # type: ignore
-                name=str(row["name"]) if row["name"] else "",  # type: ignore
-                quantity=int(row["quantity"]) if row["quantity"] else 0,  # type: ignore
-                issuedQuantity=int(row["issuedQuantity"]) if row["issuedQuantity"] else 0,  # type: ignore
-                address=str(row["address"]) if row["address"] else "",  # type: ignore
-                status=str(row["status"]) if row["status"] else ""  # type: ignore
-            )
-            for row in rows
-        ]
+            return [
+                Book(
+                    id=int(row["id"]) if row["id"] else None,  # type: ignore
+                    name=str(row["name"]) if row["name"] else "",  # type: ignore
+                    quantity=int(row["quantity"]) if row["quantity"] else 0,  # type: ignore
+                    issuedQuantity=int(row["issuedQuantity"]) if row["issuedQuantity"] else 0,  # type: ignore
+                    address=str(row["address"]) if row["address"] else "",  # type: ignore
+                    status=str(row["status"]) if row["status"] else ""  # type: ignore
+                )
+                for row in rows
+            ]
+        except Exception:
+            return []
 
     def search_book(self, keyword: str):
-        sql = "SELECT * FROM books WHERE name LIKE %s"
-        self.cursor.execute(sql, ('%' + keyword + '%',))
-        return self.cursor.fetchall()
+        if not self.cursor:
+            return []
+        try:
+            sql = "SELECT * FROM books WHERE name LIKE %s"
+            self.cursor.execute(sql, ('%' + keyword + '%',))
+            return self.cursor.fetchall()
+        except Exception:
+            return []
 
     def update_book(self, book_id: int, book: Book):
         sql = """
@@ -108,21 +122,26 @@ class LibraryDB:
         self.conn.commit()
 
     def get_members(self) -> List[Member]:
-        self.cursor.execute("SELECT * FROM members")
-        rows = self.cursor.fetchall()
+        if not self.cursor:
+            return []
+        try:
+            self.cursor.execute("SELECT * FROM members")
+            rows = self.cursor.fetchall()
 
-        return [
-            Member(
-                id=int(row["id"]) if row["id"] else None,  # type: ignore
-                name=str(row["name"]) if row["name"] else "",  # type: ignore
-                contactNumber=str(row["contactNumber"]) if row["contactNumber"] else "",  # type: ignore
-                address=str(row["address"]) if row["address"] else "",  # type: ignore
-                age=int(row["age"]) if row["age"] else 0,  # type: ignore
-                gender=str(row["gender"]) if row["gender"] else "",  # type: ignore
-                penalty=int(row["penalty"]) if row["penalty"] else 0  # type: ignore
-            )
-            for row in rows
-        ]
+            return [
+                Member(
+                    id=int(row["id"]) if row["id"] else None,  # type: ignore
+                    name=str(row["name"]) if row["name"] else "",  # type: ignore
+                    contactNumber=str(row["contactNumber"]) if row["contactNumber"] else "",  # type: ignore
+                    address=str(row["address"]) if row["address"] else "",  # type: ignore
+                    age=int(row["age"]) if row["age"] else 0,  # type: ignore
+                    gender=str(row["gender"]) if row["gender"] else "",  # type: ignore
+                    penalty=int(row["penalty"]) if row["penalty"] else 0  # type: ignore
+                )
+                for row in rows
+            ]
+        except Exception:
+            return []
 
     def update_member(self, member_id: int, member: Member):
         sql = """
@@ -168,19 +187,24 @@ class LibraryDB:
         self.conn.commit()
 
     def get_staff(self) -> List[Staff]:
-        self.cursor.execute("SELECT * FROM staff")
-        rows = self.cursor.fetchall()
+        if not self.cursor:
+            return []
+        try:
+            self.cursor.execute("SELECT * FROM staff")
+            rows = self.cursor.fetchall()
 
-        return [
-            Staff(
-                id=int(row["id"]) if row["id"] else None,  # type: ignore
-                name=str(row["name"]) if row["name"] else "",  # type: ignore
-                age=int(row["age"]) if row["age"] else 0,  # type: ignore
-                gender=str(row["gender"]) if row["gender"] else "",  # type: ignore
-                role=str(row["role"]) if row["role"] else ""  # type: ignore
-            )
-            for row in rows
-        ]
+            return [
+                Staff(
+                    id=int(row["id"]) if row["id"] else None,  # type: ignore
+                    name=str(row["name"]) if row["name"] else "",  # type: ignore
+                    age=int(row["age"]) if row["age"] else 0,  # type: ignore
+                    gender=str(row["gender"]) if row["gender"] else "",  # type: ignore
+                    role=str(row["role"]) if row["role"] else ""  # type: ignore
+                )
+                for row in rows
+            ]
+        except Exception:
+            return []
 
     def update_staff(self, staff_id: int, staff: Staff):
         sql = """
@@ -290,33 +314,53 @@ class LibraryDB:
         print(f"Book Returned. Fine = {fine}")
 
     def get_transactions(self):
-        self.cursor.execute("SELECT * FROM transactions")
-        return self.cursor.fetchall()
+        if not self.cursor:
+            return []
+        try:
+            self.cursor.execute("SELECT * FROM transactions")
+            return self.cursor.fetchall()
+        except Exception:
+            return []
 
     # =====================================================
     # DASHBOARD
     # =====================================================
 
     def total_books(self):
-        self.cursor.execute(
-            "SELECT COALESCE(SUM(quantity + issuedQuantity), 0) AS total FROM books"
-        )
-        result = self.cursor.fetchone()
-        return int(result["total"]) if result else 0  # type: ignore
+        if not self.cursor:
+            return 0
+        try:
+            self.cursor.execute(
+                "SELECT COALESCE(SUM(quantity + issuedQuantity), 0) AS total FROM books"
+            )
+            result = self.cursor.fetchone()
+            return int(result["total"]) if result else 0  # type: ignore
+        except Exception:
+            return 0
 
     def issued_books(self):
-        self.cursor.execute(
-            "SELECT COALESCE(SUM(issuedQuantity), 0) AS total FROM books"
-        )
-        result = self.cursor.fetchone()
-        return int(result["total"]) if result else 0  # type: ignore
+        if not self.cursor:
+            return 0
+        try:
+            self.cursor.execute(
+                "SELECT COALESCE(SUM(issuedQuantity), 0) AS total FROM books"
+            )
+            result = self.cursor.fetchone()
+            return int(result["total"]) if result else 0  # type: ignore
+        except Exception:
+            return 0
 
     def total_members(self):
-        self.cursor.execute(
-            "SELECT COUNT(*) AS total FROM members"
-        )
-        result = self.cursor.fetchone()
-        return int(result["total"]) if result else 0  # type: ignore
+        if not self.cursor:
+            return 0
+        try:
+            self.cursor.execute(
+                "SELECT COUNT(*) AS total FROM members"
+            )
+            result = self.cursor.fetchone()
+            return int(result["total"]) if result else 0  # type: ignore
+        except Exception:
+            return 0
 
     # =====================================================
     # CLOSE CONNECTION
