@@ -1,5 +1,4 @@
 import os
-from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
@@ -9,8 +8,6 @@ from src.models.book import Book
 from src.models.member import Member
 from src.models.staff import Staff
 from src.models.transaction import Transaction
-
-load_dotenv()
 
 
 class LibraryDB:
