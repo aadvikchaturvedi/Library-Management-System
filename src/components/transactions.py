@@ -41,13 +41,13 @@ def _issue_book(db):
         members = db.get_members()
         
         if books and members:
-            with st.form("issue_book_form"):
-                book_names = {book.id: book.name for book in books if (book.quantity - book.issuedQuantity) > 0}
-                member_names = {member.id: member.name for member in members}
-                
-                if not book_names:
-                    st.warning("No books available for issue.")
-                else:
+            book_names = {book.id: book.name for book in books if (book.quantity - book.issuedQuantity) > 0}
+            member_names = {member.id: member.name for member in members}
+            
+            if not book_names:
+                st.warning("No books available for issue.")
+            else:
+                with st.form("issue_book_form"):
                     selected_book_id = st.selectbox(
                         "Select Book *",
                         options=list(book_names.keys()),
