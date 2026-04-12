@@ -34,6 +34,8 @@ class LibraryDB:
     # =====================================================
 
     def add_book(self, book: Book):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         sql = """
         INSERT INTO books(name, quantity, issuedQuantity, address, status)
         VALUES (%s, %s, %s, %s, %s)
@@ -79,6 +81,8 @@ class LibraryDB:
             return []
 
     def update_book(self, book_id: int, book: Book):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         sql = """
         UPDATE books
         SET name=%s,
@@ -99,6 +103,8 @@ class LibraryDB:
         self.conn.commit()
 
     def delete_book(self, book_id: int):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         self.cursor.execute("DELETE FROM books WHERE id=%s", (book_id,))
         self.conn.commit()
 
@@ -107,6 +113,8 @@ class LibraryDB:
     # =====================================================
 
     def add_member(self, member: Member):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         sql = """
         INSERT INTO members(name, contactNumber, address, age, gender, penalty)
         VALUES(%s, %s, %s, %s, %s, %s)
@@ -144,6 +152,8 @@ class LibraryDB:
             return []
 
     def update_member(self, member_id: int, member: Member):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         sql = """
         UPDATE members
         SET name=%s,
@@ -166,6 +176,8 @@ class LibraryDB:
         self.conn.commit()
 
     def delete_member(self, member_id: int):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         self.cursor.execute("DELETE FROM members WHERE id=%s", (member_id,))
         self.conn.commit()
 
@@ -174,6 +186,8 @@ class LibraryDB:
     # =====================================================
 
     def add_staff(self, staff: Staff):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         sql = """
         INSERT INTO staff(name, age, gender, role)
         VALUES(%s, %s, %s, %s)
@@ -207,6 +221,8 @@ class LibraryDB:
             return []
 
     def update_staff(self, staff_id: int, staff: Staff):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         sql = """
         UPDATE staff
         SET name=%s,
@@ -225,6 +241,8 @@ class LibraryDB:
         self.conn.commit()
 
     def delete_staff(self, staff_id: int):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         self.cursor.execute("DELETE FROM staff WHERE id=%s", (staff_id,))
         self.conn.commit()
 
@@ -233,6 +251,8 @@ class LibraryDB:
     # =====================================================
 
     def issue_book(self, transaction: Transaction):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         self.cursor.execute(
             "SELECT quantity FROM books WHERE id=%s",
             (transaction.bookId,)
@@ -267,6 +287,8 @@ class LibraryDB:
         self.conn.commit()
 
     def return_book(self, transaction_id: int):
+        if not self.cursor or not self.conn:
+            raise ValueError("Database not connected")
         self.cursor.execute("""
             SELECT id, bookId, memberId, dueDate, returnDate
             FROM transactions
@@ -367,6 +389,8 @@ class LibraryDB:
     # =====================================================
 
     def close(self):
-        self.cursor.close()
-        self.conn.close()
+        if self.cursor:
+            self.cursor.close()
+        if self.conn:
+            self.conn.close()
         print("Database Connection Closed")
